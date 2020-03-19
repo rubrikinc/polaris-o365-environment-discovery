@@ -10,6 +10,6 @@ How to Run the script
 Output from the script
 The script will generate a CSV file containing the Licensing information for each user in the tenant.
 
-Displayname	    UserPrincipalName	                Country	    LicensePlanWithEnabledService	FriendlyNameOfLicensePlanAndEnabledService
-Perf User604	perf.user604@rdnn14.onmicrosoft.com	-	        EXCHANGESTANDARD[All services]	Office 365 Exchange Online Only[All services]
-Perf User182	perf.user182@rdnn14.onmicrosoft.com	-	        EXCHANGESTANDARD[All services]	Office 365 Exchange Online Only[All services]
+Displayname	    UserPrincipalName	                    Country	    LicensePlanWithEnabledService	  FriendlyNameOfLicensePlanAndEnabledService
+Perf User604	perf.user604@rdnn14.onmicrosoft.com	-	              EXCHANGESTANDARD[All services]	Office 365 Exchange Online Only[All services]
+Perf User182	perf.user182@rdnn14.onmicrosoft.com	-	              EXCHANGESTANDARD[All services]	Office 365 Exchange Online Only[All services]
