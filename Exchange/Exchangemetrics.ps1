@@ -19,9 +19,9 @@
 ################################################################################################################################################################
 #Accept input parameters
 Param(
-[Parameter(Position=0, Mandatory=$true, ValueFromPipeline=$true)]
+[Parameter(Position=0, Mandatory=$false, ValueFromPipeline=$true)]
 [string] $Office365Username,
-[Parameter(Position=1, Mandatory=$true, ValueFromPipeline=$true)]
+[Parameter(Position=1, Mandatory=$false, ValueFromPipeline=$true)]
 [string] $Office365Password,
 [Parameter(Position=2, Mandatory=$false, ValueFromPipeline=$true)]
 [string] $UserIDFile
@@ -34,6 +34,8 @@ Function Main
     #Remove all existing Powershell sessions
     Get-PSSession | Remove-PSSession
     #Call ConnectTo-ExchangeOnline function with correct credentials
+    $Office365Username ="admin.o365@rdnn14.onmicrosoft.com" 
+    $Office365Password="scaledata12#$"
     ConnectTo-ExchangeOnline -Office365AdminUsername $Office365Username -Office365AdminPassword $Office365Password
     #Prepare Output file with headers
     #Out-File -FilePath $OutputFile -InputObject "UserPrincipalName,NumberOfItems,MailboxSize" -Encoding UTF8
@@ -46,8 +48,46 @@ Function Main
     else
     {
     #No input file found, gather all mailboxes from Office 365
-    #$objUsers  = get-mailbox -ResultSize Unlimited | select UserPrincipalName
-    $objUsers = get-mailbox  -ResultSize Unlimited | get-mailboxstatistics | Select DisplayName,DeletedItemCount,ItemCount,TotalDeletedItemSize,TotalItemSize,MessageTableTotalSize,MessageTableAvailableSize,AttachmentTableTotalSize,AttachmentTableAvailableSize,OtherTablesTotalSize,OtherTablesAvailableSize,IsEncrypted,LastInteractionTime,LastLoggedOnUserAccount,LastLogoffTime,LastLogonTime,AssociatedItemCount ,IsValid,IsArchiveMailBox,MailBoxType | Export-CSV  ExMailboxReport.csv
+    #$objUsers = get-mailbox  -ResultSize Unlimited | get-mailboxstatistics | Select DisplayName,DeletedItemCount,ItemCount,TotalDeletedItemSize,TotalItemSize,MessageTableTotalSize,MessageTableAvailableSize,AttachmentTableTotalSize,AttachmentTableAvailableSize,OtherTablesTotalSize,OtherTablesAvailableSize,IsEncrypted,LastInteractionTime,LastLoggedOnUserAccount,LastLogoffTime,LastLogonTime,AssociatedItemCount ,IsValid,IsArchiveMailBox,MailBoxType | Export-CSV  MailboxReport.csv
+    $objUsersCal = get-mailbox  -ResultSize Unlimited | Get-MailboxFolderStatistics  –FolderScope 'Calendar'  | Select Identity,Name , FolderPath,CreationTime,FolderId,HiddenItemsInFolder,ItemsInFolder,DeletedItemsInFolder,FolderSize | Export-CSV  CalFile.csv
+
+    $DataPath = "CalendarUsage.csv"
+    $Results =@()
+    $CalendarResults =@()
+    $obj=@()
+
+    $objmMilboxUsers=get-mailbox
+    write-host $objmMilboxUsers
+    ForEach ($User in $objmMilboxUsers)
+    {
+        #write-host $User
+        $UserCalender=Get-MailboxFolderStatistics $User.Alias –FolderScope 'Calendar'  | Select Identity,Name , FolderPath,CreationTime,FolderId,HiddenItemsInFolder,ItemsInFolder,DeletedItemsInFolder,FolderSize 
+        #write-host "------------------------------"
+        #write-host $UserCalender
+        #write-host $UserCalender.length
+        if ($UserCalender.length -eq 1)
+        {
+            #$CalendarResults += New-Object psobject -Property $UserCalender
+            $CalendarResults += [pscustomobject]$UserCalender
+        }
+        else
+        {
+            ForEach ($obj in $UserCalender)
+            {
+
+                #$CalendarResults += New-Object psobject -Property [pscustomobject]$obj
+                $CalendarResults += [pscustomobject]$obj
+            }
+        }
+        #write-host $CalendarResults
+        #write-host "------------------------------"
+    }
+    write-host "Finished"
+    write-host $CalendarResults
+    $CalendarResults | Export-CSV  "CalendarFile.csv"
+    #write-host $Results
+    #$Results | Export-CSV  "CalendarUsage.csv"
+
     #$objUsers = get-mailbox -Identity atul.mantri@rdnn14.onmicrosoft.com | get-mailboxstatistics | Select DisplayName,DeletedItemCount,ItemCount,TotalDeletedItemSize,TotalItemSize,MessageTableTotalSize,MessageTableAvailableSize,AttachmentTableTotalSize,AttachmentTableAvailableSize,OtherTablesTotalSize,OtherTablesAvailableSize,IsEncrypted,LastInteractionTime,LastLoggedOnUserAccount,LastLogoffTime,LastLogonTime,AssociatedItemCount ,IsValid,IsArchiveMailBox,MailBoxType | Export-CSV  ExMailboxReport.csv
     }
     #$objUsers
