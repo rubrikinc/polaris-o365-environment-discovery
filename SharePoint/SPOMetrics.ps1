@@ -152,7 +152,7 @@ Function GetMetricsForsite($url)
                     $allItems=Get-PnPFolderItem -FolderSiteRelativeUrl $Rootfolder -Recursive -ErrorAction Stop
                     if($Error[0])
                     {  
-                        $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"="Error Occured";"Files"="Error Occured";"storageUsed(inMB)"=""}
+                        $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"="Error Occured";"Files"="Error Occured";"storageUsed(inMB)"="";"docLibUsed(inMB)"=""}
                     }
                     else
                     {
@@ -160,7 +160,15 @@ Function GetMetricsForsite($url)
                         if($allItems)
                         {
                             $allFolders = $allItems | Where-Object {$_.TypedObject.ToString() -eq "Microsoft.SharePoint.Client.Folder"} 
-                            $allFiles   = $allItems | Where-Object {$_.TypedObject.ToString() -eq "Microsoft.SharePoint.Client.File"} 
+                            $allFiles   = $allItems | Where-Object {$_.TypedObject.ToString() -eq "Microsoft.SharePoint.Client.File"}
+                            $folderSize=0
+                            foreach ($item in $allFiles) {
+                                if($item.Length)
+                                {
+                                    $folderSize+=$item.Length        
+                                }
+                            } 
+                            $folderSize=($folderSize/1024/1024)
                             if(!$allFolders)
                             {
                                 $folderCount=0
@@ -174,7 +182,7 @@ Function GetMetricsForsite($url)
                                 else
                                 {
                                     $folderCount=$allFolders.Length
-                            }
+                                }
                             }
                             if(!$allFiles)
                             {
@@ -191,18 +199,18 @@ Function GetMetricsForsite($url)
                                     $filesCount=$allFiles.Length
                                 }
                             }
-                            $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"=$folderCount;"Files"=$filesCount;"storageUsed(inMB)"=""}
+                            $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"=$folderCount;"Files"=$filesCount;"storageUsed(inMB)"="";"docLibUsed(inMB)"=$folderSize}
                         }
                         else
                         {
-                            $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"=0;"Files"=0;"storageUsed(inMB)"=""}
+                            $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"=0;"Files"=0;"storageUsed(inMB)"="";"docLibUsed(inMB)"=""}
                         }
                     }
                 }
                 catch
                 {
                     Write-host "Error occured"    
-                    $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"="Error Occured";"Files"="Error Occured";"storageUsed(inMB)"=""}
+                    $LibInfo = [pscustomobject]@{SiteURL ="";"Group count"="";"Lib"=$listUrl;"Folders"="Error Occured";"Files"="Error Occured";"storageUsed(inMB)"="";"docLibUsed(inMB)"=""}
                 }    
                 $AllLibInSiteInfo+=$LibInfo
             }
@@ -222,7 +230,7 @@ Function GetMetricsForsite($url)
             $GroupCount="Error Occured"
         }
         $SiteInfoHeaderList += [pscustomobject]@{SiteURL = $url ;"Group count"=$GroupCount  ;"storageUsed(inMB)"=$sitecollectionStorage ;"List"="";"Items"=""}
-        $SiteInfoHeaderLib += [pscustomobject]@{SiteURL = $url;"Group count"=$GroupCount;List="";"storageUsed(inMB)"=$sitecollectionStorage;"Lib"="";"Folders"="";"Files"=""}
+        $SiteInfoHeaderLib += [pscustomobject]@{SiteURL = $url;"Group count"=$GroupCount;List="";"storageUsed(inMB)"=$sitecollectionStorage;"Lib"="";"Folders"="";"Files"="";"docLibUsed(inMB)"=""}
     }
     else
     {
@@ -323,7 +331,7 @@ $TenantUrl=$TenantAdminURL.Replace("-admin","")
 Connect-SPOService -Url $TenantAdminURL -Credential $Credential
 #if($AllSites)
 #{
-    $AllSiteCollections=get-sposite -Limit All  | Select Url,Title,StorageUsageCurrent| Sort-Object StorageUsageCurrent -Descending
+    $AllSiteCollections=get-sposite -Limit ALL | Select Url,Title,StorageUsageCurrent| Sort-Object StorageUsageCurrent -Descending
 #}
 #write-host $AllSiteCollections
 Get-Metrics($AllSiteCollections)
