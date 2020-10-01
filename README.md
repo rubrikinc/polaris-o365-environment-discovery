@@ -1,7 +1,7 @@
 # polaris-0365-environment-discovery
 
 ## :hammer: Installation
-
+See [Quick Start Guide](QUICK_START.md) for isntallation and usage instructions.
 ## :mag: Example
 
 ## :blue_book: Documentation
